@@ -1,9 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { servicesSchema } from "../schemas/services.schema";
+import { ChangeEvent, useRef, useTransition } from "react";
+import { FieldError, useForm } from "react-hook-form";
+import { ServicesInput, servicesSchema } from "../schemas/services.schema";
+import Image from "next/image";
+import { Image as CamerImage } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const ServiceCategories = [
   { id: "cat-1", name: "Plumbing" },
@@ -15,23 +18,31 @@ const ServiceCategories = [
   { id: "cat-7", name: "Tutoring & Lessons" },
 ];
 
-export function ServicesForm({ initialData }) {
+interface ServiceFormProps {
+  initialData?: ServicesInput & { id?: string };
+  onSubmitAction: (data: ServicesInput) => Promise<{ error?: string; success: boolean; serviceId?: string }>;
+}
+
+export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) {
   const [isPending, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    getValues,
     formState: { errors },
-  } = useForm({
+  } = useForm<ServicesInput>({
     resolver: zodResolver(servicesSchema),
     defaultValues: {
       title: initialData?.title || "",
       providerName: initialData?.providerName || "",
       categoryId: initialData?.categoryId || "",
       priceType: initialData?.priceType || "FIXED",
-      priceAmount: initialData?.priceAmount || "",
+      priceAmount: initialData?.priceAmount || undefined,
       location: initialData?.location || "",
       areasServiced: initialData?.areasServiced || "",
       experienceYears: initialData?.experienceYears || undefined,
@@ -46,11 +57,91 @@ export function ServicesForm({ initialData }) {
   const priceType = watch("priceType");
   const images = watch("images");
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = (data: ServicesInput) => {
+    startTransition(async () => {
+      const res = await onSubmitAction(data);
+      if (res?.error) {
+        alert(res.error);
+      }
+      if (res?.success) {
+        router.push("/services");
+        router.refresh();
+      }
+    })
   };
 
-  const inputClass = (error) =>
+  const compressAndReadImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; // Resize large photos to max 1200px width
+        const scaleSize = MAX_WIDTH / img.width;
+
+        if (scaleSize < 1) {
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+        } else {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const base64 = canvas.toDataURL("image/jpeg", 0.7);
+
+        // Clean up object URL to prevent memory leaks
+        URL.revokeObjectURL(objectUrl);
+
+        resolve(base64);
+      };
+    });
+  };
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files || files.length === 0) return;
+
+    const currentImages = getValues("images") || [];
+    const remainingSlots = 6 - currentImages.length;
+
+    if (remainingSlots <= 0) {
+      alert("Maximum 6 images allowed.");
+      return;
+    }
+
+    const selectedFiles = files.slice(0, remainingSlots);
+
+    try {
+      // 1. Actually call compressAndReadImage for each file using Promise.all
+      const compressedBase64Array = await Promise.all(
+        selectedFiles.map((file) => compressAndReadImage(file))
+      );
+
+      // 2. Read latest values and update form state once
+      const latestImages = getValues("images") || [];
+      setValue("images", [...latestImages, ...compressedBase64Array], {
+        shouldValidate: true,
+      });
+    } catch (error) {
+      console.error("Error processing images:", error);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    const updatedImages = images.filter((_, idx) => idx !== indexToRemove);
+    setValue("images", updatedImages, { shouldValidate: true });
+  };
+
+  const inputClass = (error?: FieldError | boolean) =>
     `
       w-full h-12 rounded-xl border bg-white px-4
       text-[15px] text-slate-800
@@ -63,7 +154,7 @@ export function ServicesForm({ initialData }) {
     }
     `;
 
-  const textareaClass = (error) =>
+  const textareaClass = (error?: FieldError | boolean) =>
     `
       w-full rounded-xl border bg-white px-4 py-3
       text-[15px] leading-6 text-slate-800
@@ -77,14 +168,14 @@ export function ServicesForm({ initialData }) {
     }
     `;
 
-  const FieldLabel = ({ children, required = false }) => (
+  const FieldLabel = ({ children, required = false }: { children: React.ReactNode; required?: boolean }) => (
     <label className="mb-2 block text-[13px] font-semibold tracking-[0.01em] text-slate-700">
       {children}
       {required && <span className="ml-1 text-indigo-500">*</span>}
     </label>
   );
 
-  const ErrorMessage = ({ error }) => {
+  const ErrorMessage = ({ error }: { error?: FieldError }) => {
     if (!error) return null;
 
     return (
@@ -94,7 +185,7 @@ export function ServicesForm({ initialData }) {
     );
   };
 
-  const SectionHeader = ({ number, title, description }) => (
+  const SectionHeader = ({ number, title, description }: { number: string; title: string; description: string }) => (
     <div className="mb-6 flex items-start gap-3">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-600">
         {number}
@@ -116,7 +207,6 @@ export function ServicesForm({ initialData }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mx-auto w-full max-w-5xl">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-slate-950">
           {initialData?.id
@@ -130,9 +220,7 @@ export function ServicesForm({ initialData }) {
         </p>
       </div>
 
-      {/* Form Container */}
       <div className="pb-6 sm:pb-8">
-        {/* 1. Basic Information */}
         <section className="">
           <SectionHeader
             number="1"
@@ -192,7 +280,6 @@ export function ServicesForm({ initialData }) {
 
         <div className="border-t border-slate-100" />
 
-        {/* 2. Service Details */}
         <section className="py-6 sm:py-8">
           <SectionHeader
             number="2"
@@ -236,7 +323,6 @@ export function ServicesForm({ initialData }) {
 
         <div className="border-t border-slate-100" />
 
-        {/* 3. Pricing & Experience */}
         <section className="py-6 sm:py-8">
           <SectionHeader
             number="3"
@@ -312,7 +398,6 @@ export function ServicesForm({ initialData }) {
 
         <div className="border-t border-slate-100" />
 
-        {/* 4. Location & Contact */}
         <section className="py-6 sm:py-8">
           <SectionHeader
             number="4"
@@ -386,7 +471,6 @@ export function ServicesForm({ initialData }) {
 
         <div className="border-t border-slate-100" />
 
-        {/* 5. Photos */}
         <section className="py-6 sm:py-8">
           <SectionHeader
             number="5"
@@ -394,36 +478,64 @@ export function ServicesForm({ initialData }) {
             description="Show customers examples of your previous work."
           />
 
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition hover:border-indigo-300 hover:bg-indigo-50/30">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-xl shadow-sm ring-1 ring-slate-100">
-              📷
-            </div>
+          <input type="file" accept="images/*" multiple ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
 
+          <div
+            className="cursor-pointer rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-8 text-center transition hover:border-indigo-300 hover:bg-indigo-50/30"
+          >
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center">
+              <CamerImage size={40} strokeWidth={1.5} />
+            </div>
             <h3 className="text-sm font-semibold text-slate-800">
               Upload your work photos
             </h3>
-
             <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-500">
-              Add up to 6 photos showing your previous projects,
-              workmanship, or completed services.
+              Add up to 6 photos showing your previous projects ({images.length}/6 uploaded)
             </p>
 
             <button
               type="button"
+              onClick={() => fileInputRef.current?.click()}
               className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600"
             >
               Choose Photos
             </button>
           </div>
 
-          {errors.images && (
-            <p className="mt-2 text-xs font-medium text-red-500">
-              {errors.images.message}
-            </p>
+          {images.length > 0 && (
+            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+              {images.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm"
+                >
+                  <Image
+                    src={imgUrl}
+                    alt={`Uploaded preview ${idx + 1}`}
+                    fill
+                    sizes="(max-width:640px) 50vw, 16vw"
+                    className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage(idx);
+                    }}
+                    className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/70 text-white transition hover:bg-red-600 focus:outline-none"
+                    title="Remove image"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
+
+          <ErrorMessage error={errors.images as unknown as FieldError} />
         </section>
 
-        {/* Footer */}
         <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="text-xs text-slate-400">
             Fields marked with <span className="text-indigo-500">*</span> are

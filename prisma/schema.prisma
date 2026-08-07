@@ -18,7 +18,8 @@ model User {
   accounts      Account[]
 
   // Custom One-to-One Profile relation
-  profile UserProfile?
+  profile  UserProfile?
+  services Service[]
 
   @@map("user")
 }
@@ -85,4 +86,56 @@ model UserProfile {
   updatedAt     DateTime @updatedAt
 
   @@map("user_profile")
+}
+
+enum PriceType {
+  FIXED
+  HOURLY
+  NEGOTIABLE
+}
+
+model ServiceCategory {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  slug     String    @unique
+  services Service[]
+
+  @@map("service_category")
+}
+
+model Service {
+  id           String @id @default(uuid())
+  title        String
+  description  String @db.Text
+  providerName String
+
+  // Price details
+  priceType   PriceType @default(FIXED)
+  priceAmount Float?
+
+  // Location & Details
+  location        String
+  areasServiced   String?
+  experienceYears Int?
+  availability    String?
+  serviceOffered  String  @db.Text
+
+  // Contact details
+  contactPhone   String
+  whatsappNumber String?
+
+  // Media (Cloudinary image URLs array)
+  images String[]
+
+  // Relations
+  categoryId String
+  category   ServiceCategory @relation(fields: [categoryId], references: [id])
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service")
 }
