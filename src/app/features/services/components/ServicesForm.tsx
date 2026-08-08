@@ -78,7 +78,7 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 1200; // Resize large photos to max 1200px width
+        const MAX_WIDTH = 1200;
         const scaleSize = MAX_WIDTH / img.width;
 
         if (scaleSize < 1) {
@@ -117,12 +117,9 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
     const selectedFiles = files.slice(0, remainingSlots);
 
     try {
-      // 1. Actually call compressAndReadImage for each file using Promise.all
       const compressedBase64Array = await Promise.all(
         selectedFiles.map((file) => compressAndReadImage(file))
       );
-
-      // 2. Read latest values and update form state once
       const latestImages = getValues("images") || [];
       setValue("images", [...latestImages, ...compressedBase64Array], {
         shouldValidate: true,
@@ -206,7 +203,7 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mx-auto w-full max-w-5xl">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-3xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-slate-950">
           {initialData?.id
