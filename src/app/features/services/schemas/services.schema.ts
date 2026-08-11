@@ -58,6 +58,8 @@ export const servicesSchema = z.object({
     .array(z.string().url("Must be a valid image URL"))
     .min(1, "Please upload at least one image or logo")
     .max(6, "You can upload a maximum of 6 images"),
+  isPublished: z.boolean().optional().default(true),
+  viewsCount: z.number().optional().default(0),
 }).refine(
   (data) => {
     if (data.priceType !== "NEGOTIABLE") {

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChangeEvent, useRef, useTransition } from "react";
-import { FieldError, useForm } from "react-hook-form";
+import { FieldError, Resolver, useForm } from "react-hook-form";
 import { ServicesInput, servicesSchema } from "../schemas/services.schema";
 import Image from "next/image";
 import { Image as CamerImage } from "lucide-react";
@@ -36,7 +36,7 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
     getValues,
     formState: { errors },
   } = useForm<ServicesInput>({
-    resolver: zodResolver(servicesSchema),
+    resolver: zodResolver(servicesSchema) as Resolver<ServicesInput>,
     defaultValues: {
       title: initialData?.title || "",
       providerName: initialData?.providerName || "",
@@ -51,6 +51,8 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
       contactPhone: initialData?.contactPhone || "",
       whatsappNumber: initialData?.whatsappNumber || "",
       images: initialData?.images || [],
+      isPublished: initialData?.isPublished ?? true,
+      viewsCount: initialData?.viewsCount ?? 0,
     },
   });
 
@@ -533,6 +535,29 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
           <ErrorMessage error={errors.images as unknown as FieldError} />
         </section>
 
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800">Publish Status</h3>
+              <p className="text-xs text-slate-500">
+                Draft listings will not appear on the public marketplace until set to Active.
+              </p>
+            </div>
+
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                {...register("isPublished")}
+                className="peer sr-only"
+              />
+              <div className="peer h-6 w-11 rounded-full bg-slate-200 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-emerald-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
+              <span className="ml-3 text-xs font-bold text-slate-700">
+                {watch("isPublished") ? "Active" : "Draft"}
+              </span>
+            </label>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="text-xs text-slate-400">
             Fields marked with <span className="text-indigo-500">*</span> are
@@ -542,7 +567,7 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-all  duration-500 hover:bg-primary-hover hover:shadow-md hover:shadow-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending && (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -550,9 +575,10 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
 
             {initialData?.id
               ? "Update Listing"
-              : "Publish Service Listing"}
+              : "Save Listing"}
           </button>
         </div>
+
       </div>
     </form>
   );

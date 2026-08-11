@@ -4,22 +4,7 @@ import { useState } from "react";
 import { MapPin, Eye, Pencil, Trash2, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-export interface ServiceItem {
-  id: string;
-  title: string;
-  description: string;
-  providerName: string;
-  priceType: "FIXED" | "HOURLY" | "NEGOTIABLE";
-  priceAmount?: number | null;
-  location: string;
-  images: string[];
-  category: { name: string };
-  contactPhone: string;
-  whatsappNumber?: string | null;
-  isPublished?: boolean;
-  viewsCount?: number;
-}
+import { ServiceItem } from "../types/services.types";
 
 interface DasServiceCardProps {
   service: ServiceItem;
@@ -55,7 +40,7 @@ export function DasServiceCard({
   };
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-amber-300 hover:shadow-sm">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-amber-100 hover:shadow-sm">
 
       {/* Top Banner & Status Controls */}
       <div className="relative aspect-21/9 w-full overflow-hidden bg-slate-100">
@@ -63,9 +48,11 @@ export function DasServiceCard({
           src={displayImage}
           alt={service.title}
           fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          priority
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-950/60 via-transparent to-transparent" />
 
         {/* Category Pill */}
         <span className="absolute top-2.5 left-2.5 rounded-md bg-slate-900/80 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
@@ -77,8 +64,8 @@ export function DasServiceCard({
           type="button"
           onClick={handleToggle}
           className={`absolute top-2.5 right-2.5 flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-xs transition-colors ${isPublished
-              ? "bg-emerald-500/90 text-white hover:bg-emerald-600"
-              : "bg-amber-500/90 text-white hover:bg-amber-600"
+            ? "bg-emerald-500/90 text-white hover:bg-emerald-600"
+            : "bg-amber-500/90 text-white hover:bg-amber-600"
             }`}
           title="Click to toggle visibility on marketplace"
         >
@@ -103,7 +90,7 @@ export function DasServiceCard({
           </span>
         </div>
 
-        <h3 className="mt-1 line-clamp-1 text-sm font-bold text-slate-800 group-hover:text-amber-700 transition-colors">
+        <h3 className="mt-1 line-clamp-1 text-sm font-bold text-slate-800">
           {service.title}
         </h3>
 
@@ -117,7 +104,7 @@ export function DasServiceCard({
           <button
             type="button"
             onClick={() => onViewDetails?.(service)}
-            className="font-semibold text-amber-700 hover:text-amber-800 hover:underline text-[11px]"
+            className="font-semibold text-amber-700 hover:text-amber-800 hover:underline text-[11px] cursor-pointer"
           >
             Manage details →
           </button>

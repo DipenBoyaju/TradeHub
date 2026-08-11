@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { ServiceItem } from "./ServiceCard";
+import { ServiceItem } from "../types/services.types";
 
 export function DasServiceList({ service }: { service: ServiceItem }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-3 hover:border-amber-300">
       <div className="flex items-center gap-3 min-w-0">
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-          <Image src={service.images[0] || "/placeholder.jpg"} alt={service.title} fill className="object-cover" />
+          <Image src={service.images[0] || "/placeholder.jpg"} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" alt={service.title} fill className="object-cover" />
         </div>
         <div className="min-w-0">
           <h4 className="truncate text-xs font-bold text-slate-800">{service.title}</h4>

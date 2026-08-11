@@ -127,6 +127,10 @@ model Service {
   // Media (Cloudinary image URLs array)
   images String[]
 
+  // Status & Analytics
+  isPublished Boolean @default(true)
+  viewsCount  Int     @default(0)
+
   // Relations
   categoryId String
   category   ServiceCategory @relation(fields: [categoryId], references: [id])

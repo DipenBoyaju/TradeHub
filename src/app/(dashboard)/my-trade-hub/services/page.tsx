@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { DasServiceCard, ServiceItem } from "@/app/features/services/components/ServiceCard";
+import { DasServiceCard } from "@/app/features/services/components/ServiceCard";
 import { DasServiceList } from "@/app/features/services/components/ServiceList";
 import { Grid2x2, List } from "lucide-react";
+import { ServiceItem } from "@/app/features/services/types/services.types";
 
-// Sample Services Data
 const MOCK_SERVICES: ServiceItem[] = [
   {
     id: "srv-1",

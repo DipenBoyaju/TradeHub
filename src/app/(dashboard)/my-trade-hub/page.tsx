@@ -1,23 +1,20 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getUserDetails } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 
 export default async function AccountDetailsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const user = await getUserDetails();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
   }
-  const { user } = session;
 
   const firstInitial = user.name ? user.name.charAt(0).toUpperCase() : "U";
 
   const profileDetails = [
-    { label: "Name", value: "Aryan" },
+    { label: "Name", value: user.name },
     { label: "Email", value: user.email },
-    { label: "Location", value: "Wellington" },
+    { label: "Location", value: user.profile?.address || "Not provided" },
+    { label: "Contact", value: user.profile?.phoneNumber || "Not provided" },
     { label: "Member since", value: "June 2019" },
     { label: "Authenticated", value: "Yes", isStatus: true },
   ];
@@ -41,7 +38,6 @@ export default async function AccountDetailsPage() {
         </div>
       </div>
 
-      {/* Full-width elegant data list */}
       <div className="divide-y divide-slate-200">
         {profileDetails.map((detail, idx) => (
           <div key={idx} className="flex py-4 text-[15px]">
