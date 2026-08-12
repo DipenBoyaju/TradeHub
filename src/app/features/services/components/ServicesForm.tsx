@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Image as CamerImage } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const ServiceCategories = [
+export const ServiceCategories = [
   { id: "cat-1", name: "Plumbing" },
   { id: "cat-2", name: "Electrical" },
   { id: "cat-3", name: "Cleaning & Housekeeping" },

@@ -76,7 +76,9 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
 
         isPublished: data.isPublished ?? true,
         viewsCount: data.viewsCount ?? 0,
-        userId: user.id,
+        user: {
+          connect: { id: user.id },
+        },
       }
     });
 
@@ -86,5 +88,33 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
   } catch (error) {
     console.error("Error creating service listing:", error);
     return { success: false, error: "Failed to create service listing. Please try again." }
+  }
+}
+
+export async function getUserServices() {
+  const user = await getAuthUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  try {
+    const services = await prisma.service.findMany({
+      where: { userId: user.id },
+      include: {
+        category: {
+          select: {
+            name: true,
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    })
+    return { success: true, data: services };
+  } catch (error) {
+    console.error("Error fetching user services:", error);
+    return { success: false, data: [], error: "Failed to load services." };
   }
 }

@@ -12,4 +12,9 @@ export interface ServiceItem {
   whatsappNumber?: string | null;
   isPublished?: boolean;
   viewsCount?: number;
+  userId?: string | null;
+  experienceYears?: number | null;
+  availability?: string | null;
+  serviceOffered: string;
+  areasServiced?: string | null;
 }

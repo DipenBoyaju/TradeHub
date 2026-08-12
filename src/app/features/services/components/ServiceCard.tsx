@@ -22,7 +22,7 @@ export function DasServiceCard({
   onStatusToggle,
 }: DasServiceCardProps) {
   const [isPublished, setIsPublished] = useState(service.isPublished ?? true);
-  const displayImage = service.images[0] || "/placeholder-service.jpg";
+  const displayImage = service.images?.[0] || "/placeholder-service.jpg";
 
   const formatPrice = () => {
     if (service.priceType === "NEGOTIABLE") return "Negotiable";
@@ -40,8 +40,7 @@ export function DasServiceCard({
   };
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-amber-100 hover:shadow-sm">
-
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-amber-200 hover:shadow-xs">
       {/* Top Banner & Status Controls */}
       <div className="relative aspect-21/9 w-full overflow-hidden bg-slate-100">
         <Image
@@ -63,14 +62,20 @@ export function DasServiceCard({
         <button
           type="button"
           onClick={handleToggle}
-          className={`absolute top-2.5 right-2.5 flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-xs transition-colors ${isPublished
-            ? "bg-emerald-500/90 text-white hover:bg-emerald-600"
-            : "bg-amber-500/90 text-white hover:bg-amber-600"
+          className={`absolute top-2.5 right-2.5 flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-bold backdrop-blur-md transition-all shadow-sm cursor-pointer border ${isPublished
+              ? "bg-slate-900/80 border-slate-700 text-emerald-400"
+              : "bg-slate-900/80 border-slate-700 text-amber-400"
             }`}
-          title="Click to toggle visibility on marketplace"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-white" />
-          {isPublished ? "Active" : "Draft"}
+          <span>{isPublished ? "Active" : "Draft"}</span>
+
+          {/* The Switch Track */}
+          <div className={`relative h-4 w-7 rounded-full p-0.5 transition-colors ${isPublished ? "bg-emerald-500" : "bg-slate-600"
+            }`}>
+            {/* The Switch Thumb */}
+            <div className={`h-3 w-3 rounded-full bg-white transition-transform ${isPublished ? "translate-x-3" : "translate-x-0"
+              }`} />
+          </div>
         </button>
 
         {/* Price Tag Overlay on Image */}
