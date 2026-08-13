@@ -7,6 +7,8 @@ import { Grid2x2, List } from "lucide-react";
 import { ServiceItem } from "@/app/features/services/types/services.types";
 import { ServiceDetailModal } from "./ServiceDetailModal";
 import { ServiceEditDrawer } from "./ServiceEditDrawer";
+import { DeleteConfirmModal } from "./DeleteconfirmModal";
+import { deleteService } from "../actions/services.action";
 
 interface ServicesClientViewProps {
   initialServices: ServiceItem[];
@@ -23,6 +25,9 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
 
+  const [deletingService, setDeletingService] = useState<ServiceItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleOpenModal = (services: ServiceItem) => {
     setSelectedService(services);
     setIsModalOpen(true);
@@ -34,7 +39,7 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
   };
 
   const handleEditService = (services: ServiceItem) => {
-    setEditingService(service);
+    setEditingService(services);
     setIsEditDrawerOpen(true);
   }
 
@@ -51,7 +56,34 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
     s.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDeleteService = () => { }
+  const handleOpenDeleteModal = (serviceId: string) => {
+    const targetService = services.find((s) => s.id === serviceId);
+    if (targetService) {
+      setDeletingService(targetService);
+    }
+  };
+
+  // 2. Executed when user clicks "Delete" inside modal
+  const handleConfirmDelete = async () => {
+    if (!deletingService) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await deleteService(deletingService.id);
+
+      if (response.success) {
+        // Remove item from local state list
+        setServices((prev) => prev.filter((item) => item.id !== deletingService.id));
+        setDeletingService(null);
+      } else {
+        alert(response.error || "Failed to delete service");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   const handleStatusToggle = () => { }
 
   return (
@@ -112,7 +144,7 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
               service={service}
               onViewDetails={handleOpenModal}
               onEdit={handleEditService}
-              onDelete={handleDeleteService}
+              onDelete={handleOpenDeleteModal}
               onStatusToggle={handleStatusToggle}
             />
           ))}
@@ -125,7 +157,7 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
               service={service}
               onViewDetails={handleOpenModal}
               onEdit={handleEditService}
-              onDelete={handleDeleteService}
+              onDelete={handleOpenDeleteModal}
               onStatusToggle={handleStatusToggle}
             />
           ))}
@@ -134,7 +166,17 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
 
       <ServiceDetailModal service={selectedService} isOpen={isModalOpen} onClose={handleCloseModal} />
 
-      <ServiceEditDrawer service={editingService} isOpen={isEditDrawerOpen} onClose={handleCloseEditDrawer} onSave={handleSaveService} />
+      {/* <ServiceEditDrawer service={editingService} isOpen={isEditDrawerOpen} onClose={handleCloseEditDrawer} onSave={handleSaveService} /> */}
+
+      <DeleteConfirmModal
+        isOpen={!!deletingService}
+        title="Delete Service Listing"
+        description="Are you sure you want to delete this service listing? This will permanently remove all associated images and details."
+        itemName={deletingService?.title}
+        isDeleting={isDeleting}
+        onClose={() => setDeletingService(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

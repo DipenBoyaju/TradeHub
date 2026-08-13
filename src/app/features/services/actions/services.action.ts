@@ -1,6 +1,6 @@
 "use server";
 
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { deleteFromCloudinary, uploadToCloudinary } from "@/lib/cloudinary";
 import { ServicesInput, servicesSchema } from "../schemas/services.schema";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -88,6 +88,46 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
   } catch (error) {
     console.error("Error creating service listing:", error);
     return { success: false, error: "Failed to create service listing. Please try again." }
+  }
+}
+
+export async function deleteService(serviceId: string): Promise<ActionResponse> {
+  const user = await getAuthUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  try {
+    const existingService = await prisma.service.findUnique({
+      where: { id: serviceId },
+      select: { id: true, userId: true, images: true },
+    });
+
+    if (!existingService) {
+      return { success: false, error: "Service listing not found." };
+    }
+
+    if (existingService.userId !== user.id) {
+      return { success: false, error: "Unauthorized" }
+    }
+    if (existingService.images && existingService.images.length > 0) {
+      existingService.images.map((imgUrl) => deleteFromCloudinary(imgUrl))
+    }
+
+    await prisma.service.delete({
+      where: { id: serviceId }
+    })
+
+    revalidatePath("/my-trade-hub/services")
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting service listing:", error);
+    return {
+      success: false,
+      error: "Failed to delete service listing. Please try again.",
+    };
   }
 }
 

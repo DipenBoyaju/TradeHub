@@ -30,3 +30,24 @@ export async function uploadToCloudinary(fileString: string, subFolder: Cloudina
 
   return result.secure_url;
 }
+
+export async function deleteFromCloudinary(imageUrl: string): Promise<void> {
+  if (!imageUrl || !imageUrl.includes("cloudinary.com")) return;
+
+  try {
+    const uploadSplit = imageUrl.split("/upload/");
+    if (uploadSplit.length < 2) return;
+
+    const pathAfterUpload = uploadSplit[1];
+
+    const pathWithoutVersion = pathAfterUpload.replace(/^v\d+\//, "");
+
+    const publicId = pathWithoutVersion.substring(0, pathWithoutVersion.lastIndexOf("."));
+
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId);
+    }
+  } catch (error) {
+    console.error(`Failed to delete Cloudinary image (${imageUrl}):`, error);
+  }
+}

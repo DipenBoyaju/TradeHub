@@ -13,6 +13,7 @@ import {
   MapPin,
   Phone,
   MessageCircle,
+  UserRound,
 } from "lucide-react";
 
 interface ServiceDetailModalProps {
@@ -145,10 +146,16 @@ export function ServiceDetailModal({
             {/* Header: Category & Title */}
             <div>
               <div className="flex items-center justify-between gap-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                  <Tag className="h-3.5 w-3.5" />
-                  {service.category.name}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-hover">
+                    <Tag className="h-3.5 w-3.5" />
+                    {service.category.name}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <MapPin size={14} className="text-primary" />
+                    <p className="capitalize text-sm font-semibold text-primary-hover">{service.location}</p>
+                  </div>
+                </div>
 
                 <span className="text-xl font-bold text-slate-900">
                   {formattedPrice}
@@ -158,6 +165,10 @@ export function ServiceDetailModal({
               <h2 className="mt-2 text-2xl font-bold text-slate-900 font-heading">
                 {service.title}
               </h2>
+              <div className="flex items-center gap-2 pt-3">
+                <UserRound size={18} className="bg-primary p-0.5 rounded-full text-white" />
+                <h3 className="text-slate-500 text-sm underline">{service.providerName}</h3>
+              </div>
             </div>
 
             {/* Performance Analytics Grid */}
@@ -177,8 +188,8 @@ export function ServiceDetailModal({
                   <MapPin className="h-4 w-4 text-blue-500" />
                   Target Area
                 </span>
-                <p className="mt-1 text-sm font-semibold text-slate-800 line-clamp-1">
-                  {service.location}
+                <p className="mt-1 text-sm font-semibold text-slate-800 line-clamp-1 capitalize">
+                  {service.areasServiced}
                 </p>
               </div>
 
@@ -200,6 +211,15 @@ export function ServiceDetailModal({
               </h3>
               <p className="text-sm leading-relaxed text-slate-600 whitespace-pre-line bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                 {service.description}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Services Offered
+              </h3>
+              <p className="text-sm leading-relaxed text-slate-600 whitespace-pre-line bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                {service.serviceOffered}
               </p>
             </div>
 
