@@ -69,8 +69,6 @@ model Verification {
   @@map("verification")
 }
 
-// --- Custom Decoupled Profile Table ---
-
 model UserProfile {
   id            String   @id @default(uuid())
   userId        String   @unique
@@ -108,6 +106,7 @@ model Service {
   title        String
   description  String @db.Text
   providerName String
+  slug         String @unique
 
   // Price details
   priceType   PriceType @default(FIXED)
@@ -138,8 +137,25 @@ model Service {
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  avarageRating Float           @default(0.0)
+  totalReviews  Int             @default(0)
+  reviews       ServiceReview[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("service")
+}
+
+model ServiceReview {
+  id       String   @id @default(uuid())
+  rating   Int
+  comment  String
+  userName String
+  images   String[] @default([])
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }

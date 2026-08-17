@@ -7,16 +7,8 @@ import { ServicesInput, servicesSchema } from "../schemas/services.schema";
 import Image from "next/image";
 import { Image as CamerImage } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-export const ServiceCategories = [
-  { id: "cat-1", name: "Plumbing" },
-  { id: "cat-2", name: "Electrical" },
-  { id: "cat-3", name: "Cleaning & Housekeeping" },
-  { id: "cat-4", name: "Appliance Repair" },
-  { id: "cat-5", name: "Painting & Renovation" },
-  { id: "cat-6", name: "IT & Tech Support" },
-  { id: "cat-7", name: "Tutoring & Lessons" },
-];
+import { ServiceCategories } from "../constants/categories";
+import { toast } from "sonner";
 
 interface ServiceFormProps {
   initialData?: ServicesInput & { id?: string };
@@ -60,13 +52,16 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
   const images = watch("images");
 
   const onSubmit = (data: ServicesInput) => {
+    const toastId = toast.loading("Service listing...");
+
     startTransition(async () => {
       const res = await onSubmitAction(data);
       if (res?.error) {
-        alert(res.error);
+        toast.error(res.error, { id: toastId });
       }
       if (res?.success) {
-        router.push("/services");
+        router.push("/my-trade-hub/services");
+        toast.success("Service Listed Successfully!", { id: toastId })
         router.refresh();
       }
     })
@@ -205,7 +200,10 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-3xl">
+    <form onSubmit={handleSubmit(onSubmit, (errors) => {
+      console.log("validation errors preventing submit:", errors);
+      toast.error("Please fill in all required fields correctly.")
+    })} className="w-full max-w-3xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-slate-950">
           {initialData?.id
@@ -437,8 +435,9 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
               <input
                 {...register("contactPhone")}
                 type="text"
-                placeholder="9801234567"
+                placeholder="9800000000"
                 className={inputClass(errors.contactPhone)}
+                maxLength={10}
               />
 
               <ErrorMessage error={errors.contactPhone} />
@@ -450,8 +449,9 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
               <input
                 {...register("whatsappNumber")}
                 type="text"
-                placeholder="9801234567"
+                placeholder="9800000000"
                 className={inputClass(false)}
+                maxLength={10}
               />
             </div>
 

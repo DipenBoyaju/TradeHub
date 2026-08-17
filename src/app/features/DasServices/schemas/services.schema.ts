@@ -55,7 +55,7 @@ export const servicesSchema = z.object({
     .max(15, "WhatsApp number is too long")
     .optional(),
   images: z
-    .array(z.string().url("Must be a valid image URL"))
+    .array(z.string())
     .min(1, "Please upload at least one image or logo")
     .max(6, "You can upload a maximum of 6 images"),
   isPublished: z.boolean().optional().default(true),

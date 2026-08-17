@@ -1,5 +1,5 @@
-import { getUserServices } from "@/app/features/services/actions/services.action";
-import { ServicesClientView } from "@/app/features/services/components/ServiceClientView";
+import { getUserServices } from "@/app/features/DasServices/actions/services.action";
+import { ServicesClientView } from "@/app/features/DasServices/components/ServiceClientView";
 import { redirect } from "next/navigation";
 
 export default async function DasServicePage() {
@@ -11,7 +11,7 @@ export default async function DasServicePage() {
 
   return (
     <div>
-      <ServicesClientView initialServices={services || []} />
+      <ServicesClientView services={services || []} />
     </div>
   )
 }

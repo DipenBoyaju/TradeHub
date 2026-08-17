@@ -1,21 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { DasServiceCard } from "@/app/features/services/components/ServiceCard";
-import { DasServiceList } from "@/app/features/services/components/ServiceList";
+import { DasServiceCard } from "@/app/features/DasServices/components/ServiceCard";
+import { DasServiceList } from "@/app/features/DasServices/components/ServiceList";
 import { Grid2x2, List } from "lucide-react";
-import { ServiceItem } from "@/app/features/services/types/services.types";
+import { ServiceItem } from "@/app/features/DasServices/types/services.types";
 import { ServiceDetailModal } from "./ServiceDetailModal";
 import { ServiceEditDrawer } from "./ServiceEditDrawer";
 import { DeleteConfirmModal } from "./DeleteconfirmModal";
-import { deleteService } from "../actions/services.action";
+import { deleteService, updateService } from "../actions/services.action";
+import { ServiceCategories } from "../constants/categories";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
+// 1. Updated interface to accept `services` directly
 interface ServicesClientViewProps {
-  initialServices: ServiceItem[];
+  services: ServiceItem[];
 }
 
-export function ServicesClientView({ initialServices }: ServicesClientViewProps) {
-  const [services, setServices] = useState<ServiceItem[]>(initialServices);
+export function ServicesClientView({ services }: ServicesClientViewProps) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -28,8 +32,8 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
   const [deletingService, setDeletingService] = useState<ServiceItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleOpenModal = (services: ServiceItem) => {
-    setSelectedService(services);
+  const handleOpenModal = (service: ServiceItem) => {
+    setSelectedService(service);
     setIsModalOpen(true);
   };
 
@@ -38,24 +42,60 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
     setSelectedService(null);
   };
 
-  const handleEditService = (services: ServiceItem) => {
-    setEditingService(services);
+  const handleEditService = (service: ServiceItem) => {
+    setEditingService(service);
     setIsEditDrawerOpen(true);
-  }
+  };
 
   const handleCloseEditDrawer = () => {
     setIsEditDrawerOpen(false);
     setEditingService(null);
-  }
+  };
 
-  const handleSaveService = () => { }
+  const handleSaveService = async (updatedData: Partial<ServiceItem>) => {
+    if (!editingService) return;
 
-  const filteredServices = initialServices.filter((s) =>
+    const toastId = toast.loading("Updating service...");
+
+    try {
+      const response = await updateService(editingService.id, updatedData as any);
+
+      if (response?.success) {
+        setIsEditDrawerOpen(false);
+        setEditingService(null);
+        router.refresh();
+        toast.success("Service updated successfully!", { id: toastId });
+      } else {
+        toast.error(response?.error || "Failed to update service", { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An unexpected error occurred while saving.", { id: toastId });
+    }
+  };
+
+  const handleStatusToggle = async (service: ServiceItem) => {
+    try {
+      const response = await updateService(service.id, {
+        isPublished: !service.isPublished,
+      } as any);
+
+      if (response?.success) {
+        router.refresh();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 2. Filters directly from the incoming `services` prop
+  const filteredServices = (services || []).filter((s) =>
     s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // 3. Finds target service directly from the `services` prop
   const handleOpenDeleteModal = (serviceId: string) => {
     const targetService = services.find((s) => s.id === serviceId);
     if (targetService) {
@@ -63,32 +103,32 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
     }
   };
 
-  // 2. Executed when user clicks "Delete" inside modal
   const handleConfirmDelete = async () => {
     if (!deletingService) return;
 
     setIsDeleting(true);
+    const toastId = toast.loading("Deleting service listing...");
+
     try {
       const response = await deleteService(deletingService.id);
 
-      if (response.success) {
-        // Remove item from local state list
-        setServices((prev) => prev.filter((item) => item.id !== deletingService.id));
+      if (response?.success) {
         setDeletingService(null);
+        router.refresh();
+        toast.success("Service listing deleted successfully", { id: toastId });
       } else {
-        alert(response.error || "Failed to delete service");
+        toast.error(response?.error || "Failed to delete service", { id: toastId });
       }
     } catch (err) {
       console.error(err);
+      toast.error("An error occurred while deleting.", { id: toastId });
     } finally {
       setIsDeleting(false);
     }
   };
-  const handleStatusToggle = () => { }
 
   return (
     <div>
-      {/* Header & Controls Bar */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 font-heading">Manage Services</h1>
@@ -145,7 +185,7 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
               onViewDetails={handleOpenModal}
               onEdit={handleEditService}
               onDelete={handleOpenDeleteModal}
-              onStatusToggle={handleStatusToggle}
+              onStatusToggle={() => handleStatusToggle(service)}
             />
           ))}
         </div>
@@ -158,7 +198,7 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
               onViewDetails={handleOpenModal}
               onEdit={handleEditService}
               onDelete={handleOpenDeleteModal}
-              onStatusToggle={handleStatusToggle}
+              onStatusToggle={() => handleStatusToggle(service)}
             />
           ))}
         </div>
@@ -166,7 +206,13 @@ export function ServicesClientView({ initialServices }: ServicesClientViewProps)
 
       <ServiceDetailModal service={selectedService} isOpen={isModalOpen} onClose={handleCloseModal} />
 
-      {/* <ServiceEditDrawer service={editingService} isOpen={isEditDrawerOpen} onClose={handleCloseEditDrawer} onSave={handleSaveService} /> */}
+      <ServiceEditDrawer
+        service={editingService}
+        isOpen={isEditDrawerOpen}
+        onClose={handleCloseEditDrawer}
+        onSave={handleSaveService}
+        categories={ServiceCategories}
+      />
 
       <DeleteConfirmModal
         isOpen={!!deletingService}

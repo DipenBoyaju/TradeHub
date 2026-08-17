@@ -5,6 +5,7 @@ import { ServicesInput, servicesSchema } from "../schemas/services.schema";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/auth-utils";
+import { slugify } from "../../../../../helper/slugify";
 
 export type ActionResponse = {
   success: boolean;
@@ -23,7 +24,6 @@ const categoryMap: Record<string, string> = {
 };
 
 export async function createService(rawData: ServicesInput): Promise<ActionResponse> {
-  const validated = servicesSchema.safeParse(rawData);
   const user = await getAuthUser();
 
   if (!user) {
@@ -33,6 +33,7 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
     }
   }
 
+  const validated = servicesSchema.safeParse(rawData);
   if (!validated.success) {
     const errorMessage = validated.error.issues[0]?.message || "Invalid form submission.";
     return { success: false, error: errorMessage };
@@ -40,7 +41,19 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
 
   const data = validated.data;
 
+
   try {
+    const baseSlug = slugify(data.title);
+    let uniqueSlug = baseSlug;
+
+    const existingSlug = await prisma.service.findUnique({
+      where: { slug: uniqueSlug }
+    });
+
+    if (existingSlug) {
+      uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+    }
+
     const uploadedImages = await Promise.all(
       (data.images || []).map((img) => uploadToCloudinary(img, "services"))
     );
@@ -56,6 +69,7 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
         priceType: data.priceType,
         priceAmount: data.priceType === "NEGOTIABLE" ? null : data.priceAmount,
         location: data.location,
+        slug: uniqueSlug,
         areasServiced: data.areasServiced || null,
         experienceYears: data.experienceYears ?? null,
         availability: data.availability || null,
@@ -88,6 +102,104 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
   } catch (error) {
     console.error("Error creating service listing:", error);
     return { success: false, error: "Failed to create service listing. Please try again." }
+  }
+}
+
+export async function updateService(serviceId: string, rawData: ServicesInput): Promise<ActionResponse> {
+  const user = await getAuthUser();
+
+  if (!user) {
+    return {
+      success: false,
+      error: "You must be logged in"
+    }
+  }
+
+  const validated = servicesSchema.safeParse(rawData);
+  if (!validated.success) {
+    const errorMessage = validated.error.issues[0]?.message || "Invalid form submission";
+    return { success: false, error: errorMessage };
+  }
+
+  const data = validated.data;
+
+  try {
+    const existingService = await prisma.service.findUnique({
+      where: { id: serviceId },
+      select: { id: true, userId: true, images: true }
+    });
+
+    if (!existingService) {
+      return {
+        success: false,
+        error: "Service listing not found."
+      }
+    }
+
+    if (existingService.userId !== user.id) {
+      return {
+        success: false,
+        error: "Unauthorized"
+      }
+    }
+
+    const updatedImages = await Promise.all(
+      (data.images || []).map((img) => uploadToCloudinary(img, "services"))
+    );
+
+    const removedImages = (existingService.images || []).filter(
+      (oldUrl) => !updatedImages.includes(oldUrl)
+    );
+
+    if (removedImages.length > 0) {
+      await Promise.all(
+        removedImages.map((imgUrl) => deleteFromCloudinary(imgUrl))
+      );
+    }
+
+    const categoryName = categoryMap[data.categoryId] || "General Service";
+    const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+    const updatedService = await prisma.service.update({
+      where: { id: serviceId },
+      data: {
+        title: data.title,
+        description: data.description,
+        providerName: data.providerName,
+        priceType: data.priceType,
+        priceAmount: data.priceType === "NEGOTIABLE" ? null : data.priceAmount,
+        location: data.location,
+        areasServiced: data.areasServiced || null,
+        experienceYears: data.experienceYears ?? null,
+        availability: data.availability || null,
+        serviceOffered: data.serviceOffered,
+        contactPhone: data.contactPhone,
+        whatsappNumber: data.whatsappNumber || null,
+        images: updatedImages,
+        category: {
+          connectOrCreate: {
+            where: { id: data.categoryId },
+            create: {
+              id: data.categoryId,
+              name: categoryName,
+              slug: categorySlug,
+            },
+          },
+        },
+        isPublished: data.isPublished ?? true,
+      }
+    });
+
+    revalidatePath("/my-trade-hub/services");
+
+    return { success: true, serviceId: updatedService.id }
+
+  } catch (error) {
+    console.error("Error updating service listing:", error);
+    return {
+      success: false,
+      error: "Failed to update service listing. Please try again.",
+    }
   }
 }
 

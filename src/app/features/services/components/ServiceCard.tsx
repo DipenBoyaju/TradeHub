@@ -1,150 +1,73 @@
 "use client";
 
-import { useState } from "react";
-import { MapPin, Eye, Pencil, Trash2, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ServiceItem } from "../types/services.types";
+import { MapPin, Star, User } from "lucide-react";
+import { PublicServiceItem } from "../types/services.types";
 
-interface DasServiceCardProps {
-  service: ServiceItem;
-  onViewDetails?: (service: ServiceItem) => void;
-  onEdit?: (service: ServiceItem) => void;
-  onDelete?: (serviceId: string) => void;
-  onStatusToggle?: (serviceId: string, isPublished: boolean) => void;
+interface PublicServiceCardProps {
+  service: PublicServiceItem;
 }
 
-export function DasServiceCard({
-  service,
-  onViewDetails,
-  onEdit,
-  onDelete,
-  onStatusToggle,
-}: DasServiceCardProps) {
-  const [isPublished, setIsPublished] = useState(service.isPublished ?? true);
-  const displayImage = service.images?.[0] || "/placeholder-service.jpg";
+export function ServiceCard({ service }: PublicServiceCardProps) {
+  const mainImage = service.images?.[0] || "/placeholder-service.jpg";
 
   const formatPrice = () => {
     if (service.priceType === "NEGOTIABLE") return "Negotiable";
-    if (!service.priceAmount) return "Contact for price";
-    return `NPR ${service.priceAmount.toLocaleString()} ${service.priceType === "HOURLY" ? "/ hr" : ""
+    if (!service.priceAmount) return service.priceType;
+    return `Rs. ${service.priceAmount.toLocaleString()} ${service.priceType === "HOURLY" ? "/ hr" : ""
       }`;
   };
 
-  const handleToggle = () => {
-    const nextState = !isPublished;
-    setIsPublished(nextState);
-    if (onStatusToggle) {
-      onStatusToggle(service.id, nextState);
-    }
-  };
-
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-amber-200 hover:shadow-xs">
-      {/* Top Banner & Status Controls */}
-      <div className="relative aspect-21/9 w-full overflow-hidden bg-slate-100">
+    <Link
+      href={`/services/${service.slug}`}
+      className="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white pb-4"
+    >
+      {/* Image Header */}
+      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
         <Image
-          src={displayImage}
+          src={mainImage}
           alt={service.title}
           fill
-          priority
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-slate-950/60 via-transparent to-transparent" />
-
-        {/* Category Pill */}
-        <span className="absolute top-2.5 left-2.5 rounded-md bg-slate-900/80 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
-          {service.category.name}
+        {/* Category Badge */}
+        <span className="absolute left-3 top-3 rounded-full bg-slate-900/75 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
+          {service.category?.name || "General"}
         </span>
-
-        {/* Status Badge Toggle */}
-        <button
-          type="button"
-          onClick={handleToggle}
-          className={`absolute top-2.5 right-2.5 flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-bold backdrop-blur-md transition-all shadow-sm cursor-pointer border ${isPublished
-              ? "bg-slate-900/80 border-slate-700 text-emerald-400"
-              : "bg-slate-900/80 border-slate-700 text-amber-400"
-            }`}
-        >
-          <span>{isPublished ? "Active" : "Draft"}</span>
-
-          {/* The Switch Track */}
-          <div className={`relative h-4 w-7 rounded-full p-0.5 transition-colors ${isPublished ? "bg-emerald-500" : "bg-slate-600"
-            }`}>
-            {/* The Switch Thumb */}
-            <div className={`h-3 w-3 rounded-full bg-white transition-transform ${isPublished ? "translate-x-3" : "translate-x-0"
-              }`} />
-          </div>
-        </button>
-
-        {/* Price Tag Overlay on Image */}
-        <div className="absolute bottom-2 left-2.5 text-white">
-          <span className="text-xs font-bold">{formatPrice()}</span>
-        </div>
       </div>
 
-      {/* Main Body */}
-      <div className="flex flex-1 flex-col p-3.5">
-        <div className="flex items-center justify-between text-[11px] text-slate-500">
-          <span className="flex items-center gap-1">
-            <MapPin size={12} className="text-amber-700" /> {service.location}
-          </span>
-          <span className="flex items-center gap-1 text-[11px] text-slate-400">
-            <Eye size={12} /> {service.viewsCount ?? 0} views
-          </span>
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-4">
+        {/* Rating & Views Header */}
+        <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <span className="truncate capitalize">{service.location}</span>
+          </div>
+          <div className="flex items-center gap-1 font-semibold text-amber-500">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span>{service.averageRating > 0 ? service.averageRating.toFixed(1) : "New"}</span>
+            <span className="text-slate-400">({service.totalReviews})</span>
+
+            <div className="text-xs text-primary">
+              10 reviews
+            </div>
+          </div>
         </div>
 
-        <h3 className="mt-1 line-clamp-1 text-sm font-bold text-slate-800">
+        <h3 className="line-clamp-1 font-heading text-base font-bold text-slate-800 group-hover:text-primary transition-colors duration-500 ease-in-out capitalize">
           {service.title}
         </h3>
 
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
-          {service.description}
-        </p>
-
-        {/* Dashboard Action Bar */}
-        <div className="mt-auto pt-3 flex items-center justify-between border-t border-slate-100 text-xs">
-          {/* Main Action: Open Detail Modal */}
-          <button
-            type="button"
-            onClick={() => onViewDetails?.(service)}
-            className="font-semibold text-amber-700 hover:text-amber-800 hover:underline text-[11px] cursor-pointer"
-          >
-            Manage details →
-          </button>
-
-          {/* Quick Action Icons */}
-          <div className="flex items-center gap-1">
-            <Link
-              href={`/services/${service.id}`}
-              target="_blank"
-              className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-              title="Preview public page"
-            >
-              <ExternalLink size={13} />
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => onEdit?.(service)}
-              className="rounded-md p-1.5 text-slate-400 hover:bg-amber-50 hover:text-amber-700"
-              title="Edit service"
-            >
-              <Pencil size={13} />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onDelete?.(service.id)}
-              className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
-              title="Delete service"
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
+        <p className="mt-2 line-clamp-2 text-xs text-slate-500">{service.description}</p>
+        <div className="pt-4 text-xs text-slate-500 flex items-center gap-2 capitalize">
+          <User size={20} className="bg-primary text-white p-1 rounded-sm" />
+          <p>By {service.providerName}</p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
