@@ -7,10 +7,10 @@ export const reviewSchema = z.object({
   entityId: z
     .string()
     .min(1, "Target ID is required"),
-  EntityType: EntityTypeEnum,
+  entityType: EntityTypeEnum,
   userName: z
     .string()
-    .min(2, "Name must be at least 2 characters"),
+    .default("Anonymous User"),
   rating: z
     .number()
     .min(1, "Rating must be at least 1 star")
@@ -21,7 +21,8 @@ export const reviewSchema = z.object({
   images: z
     .array(z.string())
     .max(3, "Only 3 images can be uploaded")
-    .optional
+    .optional().default([]),
+
 })
 
-export type reviewInput = z.infer<typeof reviewSchema>;
+export type ReviewInput = z.infer<typeof reviewSchema>;

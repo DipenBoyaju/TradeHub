@@ -28,6 +28,14 @@ export async function loginUser(formData: unknown) {
     return { success: true };
   } catch (error: unknown) {
     if (error instanceof APIError) {
+      if (error.message?.toLowerCase().includes("email not verified")) {
+        return {
+          success: false,
+          error: "Your email is not verified yet. Please check your inbox for the verification link.",
+          isUnverified: true,
+          email,
+        };
+      }
       return {
         success: false,
         error: error.message || "Invalid email or password.",
@@ -101,5 +109,22 @@ export async function registerUser(formData: unknown) {
 
     const message = error instanceof Error ? error.message : "An unexpected error occurred.";
     return { success: false, error: message };
+  }
+}
+
+export async function resendVerificationEmail(email: string) {
+  try {
+    await auth.api.sendVerificationEmail({
+      body: { email }
+    });
+    return {
+      success: true,
+      message: "Verification email sent!"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to resend verification email."
+    }
   }
 }

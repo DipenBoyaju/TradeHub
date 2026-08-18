@@ -5,7 +5,7 @@ import { ServicesInput, servicesSchema } from "../schemas/services.schema";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/auth-utils";
-import { slugify } from "../../../../../helper/slugify";
+import { slugify } from "../../../../helper/slugify";
 
 export type ActionResponse = {
   success: boolean;

@@ -11,7 +11,7 @@ import {
   type Step1Input,
   type Step2Input,
 } from "@/lib/validations/auth";
-import { registerUser } from "@/actions/auth";
+import { registerUser } from "@/app/features/auth/actions/auth";
 
 export default function SignupForm() {
   const [step, setStep] = React.useState<1 | 2>(1);
@@ -78,22 +78,20 @@ export default function SignupForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen w-full bg-white flex items-center justify-center p-4">
-        <div className="w-full max-w-md p-8 bg-white border border-zinc-200 rounded-xl text-center">
-          <CheckCircle2 className="w-12 h-12 text-indigo-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold tracking-tight text-zinc-900 mb-2">
-            Registration Successful!
-          </h2>
-          <p className="text-sm text-zinc-500 mb-6">
-            Your account has been created successfully.
-          </p>
-          <Link
-            href="/login"
-            className="inline-block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors"
-          >
-            Sign in to continue
-          </Link>
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-xs text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <CheckCircle2 className="h-6 w-6" />
         </div>
+        <h2 className="text-xl font-bold text-zinc-900">Check Your Inbox</h2>
+        <p className="mt-2 text-sm text-zinc-600">
+          We sent a verification link to your email address. Please click the link to verify your account before logging in.
+        </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-block w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
@@ -142,8 +140,8 @@ export default function SignupForm() {
                   placeholder="name@example.com"
                   {...register("email")}
                   className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.email
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-zinc-300 focus:border-indigo-600"
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-zinc-300 focus:border-indigo-600"
                     }`}
                 />
                 {errors.email?.message && (
@@ -163,8 +161,8 @@ export default function SignupForm() {
                     placeholder="••••••••"
                     {...register("password")}
                     className={`w-full pl-3.5 pr-10 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.password
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-zinc-300 focus:border-indigo-600"
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-zinc-300 focus:border-indigo-600"
                       }`}
                   />
                   <button
@@ -197,8 +195,8 @@ export default function SignupForm() {
                     placeholder="••••••••"
                     {...register("confirmPassword")}
                     className={`w-full pl-3.5 pr-10 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.confirmPassword
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-zinc-300 focus:border-indigo-600"
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-zinc-300 focus:border-indigo-600"
                       }`}
                   />
                   <button
@@ -245,8 +243,8 @@ export default function SignupForm() {
                     placeholder="John"
                     {...register("firstName")}
                     className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.firstName
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-zinc-300 focus:border-indigo-600"
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-zinc-300 focus:border-indigo-600"
                       }`}
                   />
                   {errors.firstName?.message && (
@@ -264,8 +262,8 @@ export default function SignupForm() {
                     placeholder="Doe"
                     {...register("lastName")}
                     className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.lastName
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-zinc-300 focus:border-indigo-600"
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-zinc-300 focus:border-indigo-600"
                       }`}
                   />
                   {errors.lastName?.message && (
@@ -284,8 +282,8 @@ export default function SignupForm() {
                   type="date"
                   {...register("dob")}
                   className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.dob
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-zinc-300 focus:border-indigo-600"
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-zinc-300 focus:border-indigo-600"
                     }`}
                 />
                 {errors.dob?.message && (
@@ -302,8 +300,8 @@ export default function SignupForm() {
                 <select
                   {...register("gender")}
                   className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 outline-none transition-colors ${errors.gender
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-zinc-300 focus:border-indigo-600"
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-zinc-300 focus:border-indigo-600"
                     }`}
                 >
                   <option value="">Select gender</option>
@@ -327,8 +325,8 @@ export default function SignupForm() {
                   placeholder="+1 (555) 000-0000"
                   {...register("phoneNumber")}
                   className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.phoneNumber
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-zinc-300 focus:border-indigo-600"
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-zinc-300 focus:border-indigo-600"
                     }`}
                 />
                 {errors.phoneNumber?.message && (
@@ -347,8 +345,8 @@ export default function SignupForm() {
                   placeholder="Street, City, Country"
                   {...register("address")}
                   className={`w-full px-3.5 py-3 bg-white border rounded-lg text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors ${errors.address
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-zinc-300 focus:border-indigo-600"
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-zinc-300 focus:border-indigo-600"
                     }`}
                 />
                 {errors.address?.message && (

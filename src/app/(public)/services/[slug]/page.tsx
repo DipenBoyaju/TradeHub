@@ -1,5 +1,7 @@
 import { getServiceBySlug } from "@/app/features/services/actions/service.action";
 import { ServiceGallery } from "@/app/features/services/components/ServiceGallery";
+import { ReviewSection } from "@/components/shared/reviews/ReviewSection";
+import { requiredAuthUser } from "@/lib/auth-utils";
 import { MapPin, Eye, Phone, MessageSquare, ShieldCheck, Heart } from "lucide-react";
 import { notFound } from "next/navigation";
 
@@ -12,6 +14,9 @@ interface PageProps {
 export default async function ServiceDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const { success, service } = await getServiceBySlug(slug);
+  const user = await requiredAuthUser();
+
+  const isAuthenticated = !!user;
 
   if (!success || !service) {
     notFound();
@@ -95,14 +100,14 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           </section>
 
           {/* Reviews Anchor */}
-          <section id="reviews" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-            <h2 className="text-lg font-bold text-slate-900">
-              Customer Reviews ({service.totalReviews ?? 0})
-            </h2>
-            <p className="mt-1 text-xs text-slate-500">
-              Average Rating: {(service.avarageRating ?? 0).toFixed(1)} / 5.0
-            </p>
-          </section>
+          <ReviewSection
+            entityId={service.id}
+            entityType="SERVICE"
+            reviews={service.reviews}
+            totalReviews={service.totalReviews}
+            averageRating={service.avarageRating}
+            isAuthenticated={isAuthenticated}
+          />
         </div>
 
         {/* RIGHT COLUMN: Sidebar Info & Contact Actions */}

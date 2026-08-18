@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
-import { loginUser } from "@/actions/auth";
+import { loginUser } from "@/app/features/auth/actions/auth";
 
 export default function LoginForm() {
   const router = useRouter();
