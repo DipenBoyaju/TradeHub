@@ -3,8 +3,10 @@ import { getServiceBySlug } from "@/app/features/services/actions/service.action
 import ServiceBreadCrumb from "@/app/features/services/components/BreadCrumb";
 import { ServiceGallery } from "@/app/features/services/components/ServiceGallery";
 import { ReviewSection } from "@/components/shared/reviews/ReviewSection";
+import { SaveToWatchlistButton } from "@/components/shared/WatchlistButton";
 import { getAuthUser } from "@/lib/auth-utils";
-import { MapPin, Eye, Phone, MessageSquare, ShieldCheck, Heart, Clock, User, Map, Lock } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { MapPin, Eye, Phone, MessageSquare, ShieldCheck, Clock, User, Map, Lock } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaStar } from "react-icons/fa";
@@ -24,6 +26,19 @@ export default async function ServiceDetailPage({ params }: PageProps) {
 
   if (!success || !service) {
     notFound();
+  }
+  let isBookmarked = false;
+  if (user) {
+    const existingBookmark = await prisma.watchlistItem.findUnique({
+      where: {
+        userId_serviceId: {
+          userId: user.id,
+          serviceId: service.id,
+        },
+      },
+      select: { id: true },
+    });
+    isBookmarked = !!existingBookmark;
   }
 
   const cleanPhone = service.contactPhone.replace(/[^0-9+]/g, "");
@@ -118,12 +133,18 @@ export default async function ServiceDetailPage({ params }: PageProps) {
 
               {/* Save to Watchlist Button */}
               {isAuthenticated ? (
-                <button
-                  type="button"
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-zinc-50 transition-colors hover:bg-primary-hover mt-4"
-                >
-                  <Heart className="h-4 w-4 text-zinc-50" /> Save to Watchlist
-                </button>
+                <SaveToWatchlistButton
+                  entityId={service.id}
+                  type="SERVICE"
+                  initialIsBookmarked={isBookmarked}
+                  isAuthenticated={!!user}
+                />
+                // <button
+                //   type="button"
+                //   className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-zinc-50 transition-colors hover:bg-primary-hover mt-4"
+                // >
+                //   <Heart className="h-4 w-4 text-zinc-50" /> Save to Watchlist
+                // </button>
               ) : (
                 <Link
                   href={loginRedirectUrl}
@@ -215,6 +236,6 @@ export default async function ServiceDetailPage({ params }: PageProps) {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 }

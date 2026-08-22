@@ -14,7 +14,6 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-800 antialiased md:flex-row">
-      {/* ---------------- MOBILE TOP BAR (<768px) ---------------- */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100 bg-white px-4 py-3 md:hidden">
         <button
           onClick={() => setIsMobileOpen(true)}
