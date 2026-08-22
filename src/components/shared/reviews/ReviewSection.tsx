@@ -49,7 +49,7 @@ export function ReviewSection({
       <ReviewForm entityId={entityId} entityType={entityType} isAuthenticated={isAuthenticated} />
 
       {/* Reviews List */}
-      <div className="space-y-4 pt-2">
+      <div className="space-y-4 pt-2 max-h-100 overflow-y-auto pr-2">
         {reviews.length === 0 ? (
           <p className="py-6 text-center text-xs text-slate-400">
             No reviews yet. Be the first to leave a review!
@@ -58,20 +58,21 @@ export function ReviewSection({
           reviews.map((rev) => (
             <div key={rev.id} className="border-b border-slate-100 pb-4 last:border-none">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-800">{rev.userName}</span>
+                <div className="flex gap-5">
+                  <span className="text-sm font-bold text-slate-800">{rev.userName}</span>
+                  <div className="mt-1 flex text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-3.5 w-3.5 ${i < rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                          }`}
+                      />
+                    ))}
+                  </div>
+                </div>
                 <span className="text-[11px] text-slate-400">
                   {new Date(rev.createdAt).toLocaleDateString()}
                 </span>
-              </div>
-
-              <div className="mt-1 flex text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3.5 w-3.5 ${i < rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
-                      }`}
-                  />
-                ))}
               </div>
 
               <p className="mt-2 text-xs leading-relaxed text-slate-600">{rev.comment}</p>

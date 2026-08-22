@@ -19,34 +19,69 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       try {
+        const fromAddress =
+          process.env.EMAIL_FROM || "NepaHub <noreply@dipenboyaju.com.np>";
+
         await resend.emails.send({
-          from: "Trade Hub <noreply@yourdomain.com>",
+          from: fromAddress,
           to: user.email,
           subject: "Verify your email address - NepaHub",
           html: `
-          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-radius: 12px;">
-              <h2 style="color: #1e293b; text-align: center;">Welcome to Trade Hub!</h2>
-              <p style="color: #475569; font-size: 14px; line-height: 1.5;">
-                Hi ${user.name || "there"},
+          <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #f8fafc; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="600px" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 32px;">
+
+              <h2 style="color: #0f172a; font-size: 22px; font-weight: 700; text-align: center; margin: 0 0 16px 0;">
+                Welcome to Nepa<span style="color: #059669;">Hub</span>
+              </h2>
+              
+              <p style="color: #334155; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
+                Hi <strong>${user.name || "there"}</strong>,
               </p>
-              <p style="color: #475569; font-size: 14px; line-height: 1.5;">
-                Please verify your email address to complete your registration and activate your account.
+              <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 32px 0;">
+                Thanks for signing up! Please verify your email address to unlock your account and start trading.
               </p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${url}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
+
+              <div style="text-align: center; margin: 0 0 32px 0;">
+                <a href="${url}" target="_blank" style="background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);">
                   Verify Email Address
                 </a>
               </div>
-              <p style="color: #94a3b8; font-size: 12px; text-align: center;">
-                If you did not request this email, you can safely ignore it.
+
+              <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 24px 0; word-break: break-all;">
+                If the button above doesn't work, copy and paste this link into your browser:
+                <br>
+                <a href="${url}" style="color: #059669; text-decoration: underline;">${url}</a>
               </p>
-            </div>
-          `,
-        })
+
+              <!-- Security Notice -->
+              <p style="color: #94a3b8; font-size: 12px; line-height: 1.5; margin: 0; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                This link will expire in 24 hours. If you didn't create an account with NepaHub, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #f8fafc; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+                &copy; ${new Date().getFullYear()} NepaHub. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+        `,
+        });
       } catch (error) {
         console.error("Failed to send verification email via Resend:", error);
       }
-    }
+    },
   },
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL,

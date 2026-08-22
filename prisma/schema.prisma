@@ -113,6 +113,8 @@ model Service {
   priceAmount Float?
 
   // Location & Details
+  province        String?
+  district        String?
   location        String
   areasServiced   String?
   experienceYears Int?
@@ -137,7 +139,7 @@ model Service {
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  avarageRating Float           @default(0.0)
+  averageRating Float           @default(0.0)
   totalReviews  Int             @default(0)
   reviews       ServiceReview[]
 

@@ -28,7 +28,8 @@ export async function loginUser(formData: unknown) {
     return { success: true };
   } catch (error: unknown) {
     if (error instanceof APIError) {
-      if (error.message?.toLowerCase().includes("email not verified")) {
+      const msg = error.message?.toLowerCase() || "";
+      if (msg.includes("email not verified") || msg.includes("verification required")) {
         return {
           success: false,
           error: "Your email is not verified yet. Please check your inbox for the verification link.",
@@ -112,19 +113,24 @@ export async function registerUser(formData: unknown) {
   }
 }
 
-export async function resendVerificationEmail(email: string) {
+export async function resendVerificationLink(email: string) {
+  if (!email) {
+    return { success: false, error: "Email address is required." };
+  }
+
   try {
     await auth.api.sendVerificationEmail({
-      body: { email }
+      body: { email },
     });
+
     return {
       success: true,
-      message: "Verification email sent!"
+      message: "A new verification link has been sent to your inbox!",
     };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to resend verification email."
+  } catch (error: unknown) {
+    if (error instanceof APIError) {
+      return { success: false, error: error.message };
     }
+    return { success: false, error: "Failed to resend verification email." };
   }
 }

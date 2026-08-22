@@ -1,4 +1,4 @@
-import { getServices } from "@/app/features/services/actions/service.action"
+import { getServices } from "@/app/features/services/actions/service.action";
 import { ServicesPublicView } from "@/app/features/services/components/ServicePublicView";
 import { prisma } from "@/lib/prisma";
 
@@ -6,7 +6,8 @@ interface PageProps {
   searchParams: Promise<{
     q?: string;
     category?: string;
-    location?: string;
+    province?: string;
+    district?: string;
     sort?: string;
   }>;
 }
@@ -21,12 +22,14 @@ export default async function PublicServicesPage({ searchParams }: PageProps) {
       slug: true,
     },
     orderBy: { name: "asc" }
-  })
+  });
+
+  const locationQuery = params.district || params.province || "";
 
   const response = await getServices({
     query: params.q,
     category: params.category,
-    location: params.location,
+    location: locationQuery,
     sort: params.sort,
   });
 
@@ -36,6 +39,8 @@ export default async function PublicServicesPage({ searchParams }: PageProps) {
     <ServicesPublicView
       initialServices={services as any}
       categories={serviceCategories}
+      selectedProvince={params.province || ""}
+      selectedDistrict={params.district || ""}
     />
   );
 }

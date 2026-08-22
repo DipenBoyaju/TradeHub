@@ -24,6 +24,9 @@ export const servicesSchema = z.object({
     .positive("Price must be greater than 0")
     .optional()
     .nullable(),
+  province: z
+    .string(),
+  district: z.string(),
   location: z
     .string()
     .min(2, "City/Region is required (e.g. Kathmandu, Bhaktapur, Lalitpur)")

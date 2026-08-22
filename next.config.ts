@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb'
-    }
+    },
   },
   images: {
     remotePatterns: [
@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // allowedDevOrigins: ['192.168.1.67'],
 };
 
 export default nextConfig;

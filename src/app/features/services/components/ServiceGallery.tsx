@@ -23,8 +23,8 @@ export function ServiceGallery({ images, title }: ServiceGalleryProps) {
 
   return (
     <div className="space-y-3">
-      {/* Hero Display */}
-      <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 group">
+      {/* Shorter Main Display using 16/9 Aspect Ratio */}
+      <div className="relative aspect-16/9 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 group">
         <Image
           src={imageList[selectedIndex]}
           alt={`${title} photo ${selectedIndex + 1}`}
@@ -57,7 +57,7 @@ export function ServiceGallery({ images, title }: ServiceGalleryProps) {
         )}
       </div>
 
-      {/* Selectable Thumbnails */}
+      {/* Selectable Thumbnails (Unchanged) */}
       {imageList.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {imageList.map((img, idx) => (

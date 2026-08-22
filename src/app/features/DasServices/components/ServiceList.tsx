@@ -22,7 +22,6 @@ export function DasServiceList({
   onStatusToggle,
 }: DasServiceListProps) {
   const [isPublished, setIsPublished] = useState(service.isPublished ?? true);
-  const displayImage = service.images?.[0] || "/placeholder-service.jpg";
 
   const formatPrice = () => {
     if (service.priceType === "NEGOTIABLE") return "Negotiable";
@@ -121,7 +120,7 @@ export function DasServiceList({
           </button>
 
           <Link
-            href={`/services/${service.id}`}
+            href={`/services/${service.slug}`}
             target="_blank"
             className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
             title="Preview public page"

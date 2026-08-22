@@ -6,6 +6,7 @@ import { Image as CamerImage } from "lucide-react";
 import Image from "next/image";
 import { ServiceItem } from "../types/services.types";
 import { ServicesInput } from "../schemas/services.schema";
+import { NEPAL_LOCATIONS } from "@/lib/constants/locations";
 
 export interface ServiceCategory {
   id: string;
@@ -42,6 +43,11 @@ export function ServiceEditDrawer({
   const selectedPriceType = watch("priceType");
   const isPublished = watch("isPublished");
   const images = watch("images") || [];
+  const selectedProvince = watch("province");
+
+  const availableDistricts = selectedProvince
+    ? NEPAL_LOCATIONS[selectedProvince as keyof typeof NEPAL_LOCATIONS] || []
+    : [];
 
   useEffect(() => {
     if (service && isOpen) {
@@ -53,6 +59,8 @@ export function ServiceEditDrawer({
         categoryId: service.categoryId || matchedCategory?.id || "",
         priceType: service.priceType || "FIXED",
         priceAmount: service.priceAmount,
+        province: service.province || "",
+        district: service.district || "",
         location: service.location || "",
         areasServiced: service.areasServiced || "",
         availability: service.availability || "",
@@ -358,6 +366,39 @@ export function ServiceEditDrawer({
                     {...register("availability")}
                     className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:border-amber-600 focus:outline-hidden"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">Province</label>
+                  <select
+                    {...register("province", { required: "Province required" })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:border-amber-600 focus:outline-hidden bg-white"
+                  >
+                    <option value="" disabled>Select Province</option>
+                    {Object.keys(NEPAL_LOCATIONS).map((prov) => (
+                      <option key={prov} value={prov}>
+                        {prov}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">District</label>
+                  <select
+                    {...register("district", { required: "District required" })}
+                    disabled={!selectedProvince}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:border-amber-600 focus:outline-hidden bg-white"
+                  >
+                    <option value="" disabled>{selectedProvince ? "Select a district" : "Select a province first"}</option>
+                    {availableDistricts.map((dist) => (
+                      <option key={dist} value={dist}>
+                        {dist}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

@@ -1,10 +1,13 @@
 export interface ServiceItem {
   id: string;
+  slug: string;
   title: string;
   description: string;
   providerName: string;
   priceType: "FIXED" | "HOURLY" | "NEGOTIABLE";
   priceAmount?: number | null;
+  province: string;
+  district: string;
   location: string;
   images: string[];
   category: { name: string };
@@ -16,6 +19,7 @@ export interface ServiceItem {
   experienceYears?: number | null;
   availability?: string | null;
   serviceOffered: string;
+  averageRating: number;
   areasServiced?: string | null;
   updatedAt: Date
 }

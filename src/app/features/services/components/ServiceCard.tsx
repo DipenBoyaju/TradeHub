@@ -12,19 +12,12 @@ interface PublicServiceCardProps {
 export function ServiceCard({ service }: PublicServiceCardProps) {
   const mainImage = service.images?.[0] || "/placeholder-service.jpg";
 
-  const formatPrice = () => {
-    if (service.priceType === "NEGOTIABLE") return "Negotiable";
-    if (!service.priceAmount) return service.priceType;
-    return `Rs. ${service.priceAmount.toLocaleString()} ${service.priceType === "HOURLY" ? "/ hr" : ""
-      }`;
-  };
-
   return (
     <Link
       href={`/services/${service.slug}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white pb-4"
     >
-      {/* Image Header */}
+
       <div className="relative h-48 w-full overflow-hidden bg-slate-100">
         <Image
           src={mainImage}
@@ -33,15 +26,14 @@ export function ServiceCard({ service }: PublicServiceCardProps) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
         />
-        {/* Category Badge */}
+
         <span className="absolute left-3 top-3 rounded-full bg-slate-900/75 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
           {service.category?.name || "General"}
         </span>
       </div>
 
-      {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        {/* Rating & Views Header */}
+
         <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
           <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
@@ -49,11 +41,9 @@ export function ServiceCard({ service }: PublicServiceCardProps) {
           </div>
           <div className="flex items-center gap-1 font-semibold text-amber-500">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            <span>{service.averageRating > 0 ? service.averageRating.toFixed(1) : "New"}</span>
-            <span className="text-slate-400">({service.totalReviews})</span>
-
+            <span>{service?.averageRating}</span> |
             <div className="text-xs text-primary">
-              10 reviews
+              {service.totalReviews} reviews
             </div>
           </div>
         </div>

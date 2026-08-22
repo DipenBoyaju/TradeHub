@@ -28,10 +28,6 @@ export async function submitReview(rawData: ReviewInput) {
       success: false,
       error: issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid review data",
     };
-    // return {
-    //   success: false,
-    //   error: validated.error.issues[0]?.message || "Invalid input",
-    // };
   }
 
   const { entityId, entityType, userName, rating, comment, images } = validated.data;
@@ -41,7 +37,6 @@ export async function submitReview(rawData: ReviewInput) {
 
     switch (entityType) {
       case "SERVICE": {
-        // Run create and aggregate/update operations inside a fast transaction
         [createdReview] = await prisma.$transaction(async (tx) => {
           const review = await tx.serviceReview.create({
             data: {
@@ -63,7 +58,7 @@ export async function submitReview(rawData: ReviewInput) {
             where: { id: entityId },
             data: {
               totalReviews: agg._count._all,
-              avarageRating: agg._avg.rating ?? 0,
+              averageRating: agg._avg.rating ?? 0,
             },
           });
 
@@ -71,7 +66,8 @@ export async function submitReview(rawData: ReviewInput) {
         });
 
         // Revalidate without blocking response
-        revalidatePath("/services");
+        revalidatePath("/services", "layout");
+        revalidatePath("/my-trade-hub/services", "layout");
 
         break;
       }

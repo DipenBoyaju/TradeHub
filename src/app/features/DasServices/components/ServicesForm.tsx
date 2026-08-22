@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChangeEvent, useRef, useTransition } from "react";
+import { ChangeEvent, useRef, useState, useTransition } from "react";
 import { FieldError, Resolver, useForm } from "react-hook-form";
 import { ServicesInput, servicesSchema } from "../schemas/services.schema";
 import Image from "next/image";
@@ -9,6 +9,7 @@ import { Image as CamerImage } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ServiceCategories } from "../constants/categories";
 import { toast } from "sonner";
+import { NEPAL_LOCATIONS } from "@/lib/constants/locations";
 
 interface ServiceFormProps {
   initialData?: ServicesInput & { id?: string };
@@ -35,6 +36,8 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
       categoryId: initialData?.categoryId || "",
       priceType: initialData?.priceType || "FIXED",
       priceAmount: initialData?.priceAmount || undefined,
+      province: initialData?.province || "",
+      district: initialData?.district || "",
       location: initialData?.location || "",
       areasServiced: initialData?.areasServiced || "",
       experienceYears: initialData?.experienceYears || undefined,
@@ -50,6 +53,11 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
 
   const priceType = watch("priceType");
   const images = watch("images");
+  const selectedProvince = watch("province");
+
+  const availableDistricts = selectedProvince
+    ? NEPAL_LOCATIONS[selectedProvince as keyof typeof NEPAL_LOCATIONS] || []
+    : [];
 
   const onSubmit = (data: ServicesInput) => {
     const toastId = toast.loading("Service listing...");
@@ -403,6 +411,49 @@ export function ServicesForm({ initialData, onSubmitAction }: ServiceFormProps) 
           />
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <FieldLabel required>Province </FieldLabel>
+
+              <select
+                {...register("province", {
+                  onChange: () => {
+                    setValue("district", "");
+                  }
+                })}
+                className={inputClass(errors.province)}
+              >
+                <option value="">Select a province </option>
+                {Object.keys(NEPAL_LOCATIONS).map((prov) => (
+                  <option key={prov} value={prov}>
+                    {prov}
+                  </option>
+                ))}
+              </select>
+
+              <ErrorMessage error={errors.province} />
+            </div>
+
+            <div>
+              <FieldLabel required>District </FieldLabel>
+
+              <select
+                {...register("district")}
+                disabled={!selectedProvince}
+                className={inputClass(errors.district)}
+              >
+                <option value="">{selectedProvince ? "Select a district" : "Select a province first"}</option>
+                {availableDistricts.map((dist) => (
+                  <option key={dist} value={dist}>
+                    {dist}
+                  </option>
+                ))}
+              </select>
+
+              <ErrorMessage error={errors.district} />
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <FieldLabel required>Location / City</FieldLabel>
 

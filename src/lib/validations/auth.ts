@@ -30,7 +30,7 @@ export const step2Schema = z.object({
   gender: z.enum(["male", "female", "other"], {
     error: "Please select a valid gender option.",
   }),
-  phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 characters." }),
+  phoneNumber: z.string().min(10, { message: "Phone number must be of 10 characters." }),
   address: z.string().min(5, { message: "Address must be at least 5 characters long." }),
   agreedToTerms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions.",

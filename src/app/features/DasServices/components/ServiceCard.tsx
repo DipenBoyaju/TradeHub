@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MapPin, Eye, Pencil, Trash2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { ServiceItem } from "../types/services.types";
@@ -22,6 +22,10 @@ export function DasServiceCard({
   onStatusToggle,
 }: DasServiceCardProps) {
   const [isPublished, setIsPublished] = useState(service.isPublished ?? true);
+
+  useEffect(() => {
+    setIsPublished(service.isPublished ?? true);
+  }, [service.isPublished])
 
   const formatPrice = () => {
     if (service.priceType === "NEGOTIABLE") return "Negotiable";
@@ -117,7 +121,7 @@ export function DasServiceCard({
           {/* Quick Action Icons */}
           <div className="flex items-center gap-1">
             <Link
-              href={`/services/${service.id}`}
+              href={`/services/${service.slug}`}
               target="_blank"
               className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               title="Preview public page"

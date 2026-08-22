@@ -8,12 +8,11 @@ import { ServiceItem } from "@/app/features/DasServices/types/services.types";
 import { ServiceDetailModal } from "./ServiceDetailModal";
 import { ServiceEditDrawer } from "./ServiceEditDrawer";
 import { DeleteConfirmModal } from "./DeleteconfirmModal";
-import { deleteService, updateService } from "../actions/services.action";
+import { deleteService, updatePublishStatus, updateService } from "../actions/services.action";
 import { ServiceCategories } from "../constants/categories";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// 1. Updated interface to accept `services` directly
 interface ServicesClientViewProps {
   services: ServiceItem[];
 }
@@ -74,28 +73,30 @@ export function ServicesClientView({ services }: ServicesClientViewProps) {
     }
   };
 
-  const handleStatusToggle = async (service: ServiceItem) => {
+  const handleStatusToggle = async (serviceId: string, isPublished: boolean) => {
     try {
-      const response = await updateService(service.id, {
-        isPublished: !service.isPublished,
+      const response = await updatePublishStatus(serviceId, {
+        isPublished
       } as any);
 
       if (response?.success) {
+        toast.success(`Service status changed to ${isPublished ? "Active" : "Draft"}`);
         router.refresh();
+      } else {
+        toast.error(response?.error || "Failed to update status");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Error toggling status.");
     }
   };
 
-  // 2. Filters directly from the incoming `services` prop
   const filteredServices = (services || []).filter((s) =>
     s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 3. Finds target service directly from the `services` prop
   const handleOpenDeleteModal = (serviceId: string) => {
     const targetService = services.find((s) => s.id === serviceId);
     if (targetService) {
@@ -174,7 +175,7 @@ export function ServicesClientView({ services }: ServicesClientViewProps) {
       {/* Services Listing Section */}
       {filteredServices.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 p-12 text-center">
-          <p className="text-sm font-medium text-slate-500">No services found matching your search.</p>
+          <p className="text-sm font-medium text-slate-500">No services found.</p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -185,7 +186,7 @@ export function ServicesClientView({ services }: ServicesClientViewProps) {
               onViewDetails={handleOpenModal}
               onEdit={handleEditService}
               onDelete={handleOpenDeleteModal}
-              onStatusToggle={() => handleStatusToggle(service)}
+              onStatusToggle={handleStatusToggle}
             />
           ))}
         </div>
@@ -198,7 +199,7 @@ export function ServicesClientView({ services }: ServicesClientViewProps) {
               onViewDetails={handleOpenModal}
               onEdit={handleEditService}
               onDelete={handleOpenDeleteModal}
-              onStatusToggle={() => handleStatusToggle(service)}
+              onStatusToggle={handleStatusToggle}
             />
           ))}
         </div>

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/auth-utils";
 import { slugify } from "../../../../helper/slugify";
+import z from "zod";
 
 export type ActionResponse = {
   success: boolean;
@@ -68,6 +69,8 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
         providerName: data.providerName,
         priceType: data.priceType,
         priceAmount: data.priceType === "NEGOTIABLE" ? null : data.priceAmount,
+        province: data.province,
+        district: data.district,
         location: data.location,
         slug: uniqueSlug,
         areasServiced: data.areasServiced || null,
@@ -97,6 +100,7 @@ export async function createService(rawData: ServicesInput): Promise<ActionRespo
     });
 
     revalidatePath("/my-trade-hub/services");
+    revalidatePath("/services");
 
     return { success: true, serviceId: newService.id }
   } catch (error) {
@@ -126,7 +130,7 @@ export async function updateService(serviceId: string, rawData: ServicesInput): 
   try {
     const existingService = await prisma.service.findUnique({
       where: { id: serviceId },
-      select: { id: true, userId: true, images: true }
+      select: { id: true, userId: true, title: true, slug: true, images: true }
     });
 
     if (!existingService) {
@@ -141,6 +145,19 @@ export async function updateService(serviceId: string, rawData: ServicesInput): 
         success: false,
         error: "Unauthorized"
       }
+    }
+    let slug = existingService.slug;
+    if (existingService?.title !== data.title) {
+      const baseSlug = slugify(data.title);
+
+      const existingSlugCount = await prisma.service.count({
+        where: {
+          slug: baseSlug,
+          NOT: { id: serviceId }
+        }
+      });
+
+      slug = existingSlugCount > 0 ? `${baseSlug}-${Date.now().toString().slice(-4)}` : baseSlug;
     }
 
     const updatedImages = await Promise.all(
@@ -164,10 +181,13 @@ export async function updateService(serviceId: string, rawData: ServicesInput): 
       where: { id: serviceId },
       data: {
         title: data.title,
+        slug: slug,
         description: data.description,
         providerName: data.providerName,
         priceType: data.priceType,
         priceAmount: data.priceType === "NEGOTIABLE" ? null : data.priceAmount,
+        province: data.province,
+        district: data.district,
         location: data.location,
         areasServiced: data.areasServiced || null,
         experienceYears: data.experienceYears ?? null,
@@ -191,6 +211,7 @@ export async function updateService(serviceId: string, rawData: ServicesInput): 
     });
 
     revalidatePath("/my-trade-hub/services");
+    revalidatePath("/services");
 
     return { success: true, serviceId: updatedService.id }
 
@@ -232,6 +253,7 @@ export async function deleteService(serviceId: string): Promise<ActionResponse> 
     })
 
     revalidatePath("/my-trade-hub/services")
+    revalidatePath("/services")
 
     return { success: true };
   } catch (error) {
@@ -239,6 +261,47 @@ export async function deleteService(serviceId: string): Promise<ActionResponse> 
     return {
       success: false,
       error: "Failed to delete service listing. Please try again.",
+    };
+  }
+}
+
+const statusUpdateSchema = z.object({
+  isPublished: z.boolean(),
+});
+
+export async function updatePublishStatus(serviceId: string, data: any) {
+  const user = await getAuthUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const { isPublished } = statusUpdateSchema.parse(data);
+
+    const updatedService = await prisma.service.update({
+      where: {
+        id: serviceId,
+        userId: user.id,
+      },
+      data: {
+        isPublished,
+      },
+    });
+
+    revalidatePath("/my-trade-hub/services");
+    revalidatePath("/services", "page");
+
+    return { success: true, service: updatedService };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.errors[0].message };
+    }
+
+    console.error("Error updating service status:", error);
+    return {
+      success: false,
+      error: "Failed to update service status. Please try again.",
     };
   }
 }
@@ -257,6 +320,14 @@ export async function getUserServices() {
         category: {
           select: {
             name: true,
+          }
+        },
+        reviews: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true
           }
         }
       },

@@ -65,7 +65,7 @@ export function ReviewForm({ entityId, entityType, isAuthenticated }: ReviewForm
         entityType,
         rating,
         comment,
-        images, // Pass selected images array
+        images,
       });
 
       if (res.error) {
@@ -186,7 +186,7 @@ export function ReviewForm({ entityId, entityType, isAuthenticated }: ReviewForm
         <button
           type="submit"
           disabled={!isAuthenticated || isPending}
-          className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-md bg-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending ? "Submitting..." : "Submit Review"}
         </button>

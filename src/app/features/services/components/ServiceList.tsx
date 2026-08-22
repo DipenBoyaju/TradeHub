@@ -21,7 +21,7 @@ export function ServiceList({ service }: PublicServiceListProps) {
 
   return (
     <Link
-      href={`/services/${service.id}`}
+      href={`/services/${service.slug}`}
       className="group flex flex-col sm:flex-row overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md"
     >
       {/* Image Thumbnail */}
@@ -47,8 +47,7 @@ export function ServiceList({ service }: PublicServiceListProps) {
             </span>
             <div className="flex items-center gap-1 font-semibold text-amber-500 text-xs">
               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              <span>{service.averageRating > 0 ? service.averageRating.toFixed(1) : "New"}</span>
-              <span className="text-slate-400">({service.totalReviews})</span>
+              <span>{service.averageRating}</span>
             </div>
           </div>
 
@@ -66,7 +65,7 @@ export function ServiceList({ service }: PublicServiceListProps) {
           <p className="mt-2 line-clamp-2 text-xs text-slate-500">{service.description}</p>
 
           <div className="text-xs text-primary pt-3">
-            10 reviews
+            {service.totalReviews} reviews
           </div>
         </div>
       </div>
