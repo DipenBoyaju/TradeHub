@@ -6,8 +6,8 @@ export interface ServiceItem {
   providerName: string;
   priceType: "FIXED" | "HOURLY" | "NEGOTIABLE";
   priceAmount?: number | null;
-  province: string;
-  district: string;
+  province: string | null;
+  district: string | null;
   location: string;
   images: string[];
   category: { name: string };

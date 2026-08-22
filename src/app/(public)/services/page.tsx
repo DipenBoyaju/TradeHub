@@ -39,8 +39,6 @@ export default async function PublicServicesPage({ searchParams }: PageProps) {
     <ServicesPublicView
       initialServices={services as any}
       categories={serviceCategories}
-      selectedProvince={params.province || ""}
-      selectedDistrict={params.district || ""}
     />
   );
 }
