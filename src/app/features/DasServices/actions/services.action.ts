@@ -295,14 +295,9 @@ export async function updatePublishStatus(serviceId: string, data: any) {
     return { success: true, service: updatedService };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
-    }
-
-    console.error("Error updating service status:", error);
-    return {
-      success: false,
-      error: "Failed to update service status. Please try again.",
+      return { success: false, error: error.issues[0]?.message || "Validation failed" };
     };
+    console.error("Error updating service status:", error);
   }
 }
 
